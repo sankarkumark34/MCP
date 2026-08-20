@@ -143,12 +143,16 @@ export function ScheduleFormPage() {
 
   const onTest = async () => {
     if (!isEdit || !id) return;
+    if (!validate()) return;
     try {
+      // Save the current form first so the test sends what's on screen,
+      // not the previously saved message.
+      await update({ id, ...payload() }).unwrap();
       const result = await sendTest(id).unwrap();
       dispatch(pushToast(
         result.status === 'FAILED'
           ? { kind: 'error', title: 'Test send failed', detail: result.errorMessage ?? 'Provider error' }
-          : { kind: 'success', title: 'Test message sent' },
+          : { kind: 'success', title: 'Test message sent', detail: 'Current message saved and delivered.' },
       ));
     } catch (err) {
       dispatch(pushToast({ kind: 'error', title: 'Test send failed', detail: apiErrorMessage(err) }));
