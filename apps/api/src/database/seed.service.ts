@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { WhatsAppGroup } from '../entities/whatsapp-group.entity';
 import { MessageTemplate } from '../entities/message-template.entity';
+import { Contact } from '../entities/contact.entity';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -18,11 +19,14 @@ export class SeedService implements OnApplicationBootstrap {
     private readonly groups: Repository<WhatsAppGroup>,
     @InjectRepository(MessageTemplate)
     private readonly templates: Repository<MessageTemplate>,
+    @InjectRepository(Contact)
+    private readonly contacts: Repository<Contact>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.seedAdmin();
     await this.seedGroups();
+    await this.seedContacts();
     await this.seedTemplates();
   }
 
@@ -75,6 +79,19 @@ export class SeedService implements OnApplicationBootstrap {
       }),
     ]);
     this.logger.log('Seeded WhatsApp groups');
+  }
+
+  private async seedContacts(): Promise<void> {
+    if ((await this.contacts.count()) > 0) return;
+    await this.contacts.save([
+      this.contacts.create({ listId: 'group-family', name: 'Amma', phone: '+919876500001' }),
+      this.contacts.create({ listId: 'group-family', name: 'Appa', phone: '+919876500002' }),
+      this.contacts.create({ listId: 'group-family', name: 'Sankar', phone: '+919876500003' }),
+      this.contacts.create({ listId: 'group-team', name: 'Rahul', phone: '+919876500011' }),
+      this.contacts.create({ listId: 'group-team', name: 'Priya', phone: '+919876500012' }),
+      this.contacts.create({ listId: 'group-friends', name: 'Karthik', phone: '+919876500021' }),
+    ]);
+    this.logger.log('Seeded sample contacts');
   }
 
   private async seedTemplates(): Promise<void> {

@@ -113,7 +113,7 @@ export function SchedulesPage() {
             <thead>
               <tr>
                 <th scope="col">Name</th>
-                <th scope="col">Group</th>
+                <th scope="col">Recipients</th>
                 <th scope="col">Schedule</th>
                 <th scope="col">Next run</th>
                 <th scope="col">Status</th>

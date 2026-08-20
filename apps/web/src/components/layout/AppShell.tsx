@@ -23,7 +23,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
   { to: '/schedules', label: 'Schedules', icon: IconCalendar },
-  { to: '/groups', label: 'Groups', icon: IconUsers },
+  { to: '/groups', label: 'Recipients', icon: IconUsers },
   { to: '/messages', label: 'Messages', icon: IconMessage },
   { to: '/history', label: 'History', icon: IconClock },
   { to: '/settings', label: 'Settings', icon: IconSettings },

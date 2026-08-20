@@ -8,6 +8,10 @@ export interface ProviderGroup {
 
 export interface SendResult {
   providerMessageId: string;
+  /** how many individual recipients were delivered to */
+  delivered: number;
+  /** phone numbers that could not be delivered to in this attempt */
+  failedNumbers: string[];
 }
 
 export class ProviderError extends Error {
@@ -25,15 +29,17 @@ export class ProviderError extends Error {
 /**
  * Replaceable WhatsApp provider adapter.
  *
- * IMPORTANT: do not assume arbitrary group messaging is supported by a real
- * provider — verify the exact provider/account capability before production
- * use, and keep provider-specific behavior inside implementations of this
+ * Delivery model: individual messages fanned out to every contact of a
+ * recipient list IN PARALLEL — the officially supported way to notify many
+ * people at the same time (WhatsApp group-send APIs are not generally
+ * available). Keep provider-specific behavior inside implementations of this
  * interface only.
  */
 export interface WhatsAppProvider {
   readonly name: string;
   listGroups(): Promise<ProviderGroup[]>;
-  sendGroupMessage(groupId: string, message: string): Promise<SendResult>;
+  /** Send `message` to every contact in the recipient list, concurrently. */
+  sendGroupMessage(listId: string, message: string): Promise<SendResult>;
   getStatus(): Promise<{
     connected: boolean;
     provider: string;

@@ -18,12 +18,20 @@ All endpoints except `POST /auth/login` and `GET /health` require a JWT:
 |--------|------|-------------|
 | GET | `/dashboard` | KPIs, 7-day delivery trend, active automations, recent activity |
 
-## Groups
+## Recipient lists (groups)
+
+Messages are delivered as **individual sends to every contact of a recipient
+list, in parallel** — the officially supported way to notify many people at
+once (WhatsApp group-send APIs are not generally available).
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/groups` | Groups discovered from the provider (`supported` flag per group) |
-| GET | `/groups/:id` | One group |
+| GET | `/groups` | Recipient lists with live member counts |
+| POST | `/groups` | Create a list: `{ name, description? }` |
+| GET | `/groups/:id` | One list including its `members` (contacts) |
+| DELETE | `/groups/:id` | Delete a list and its contacts |
+| POST | `/groups/:id/contacts` | Add a recipient: `{ name, phone }` (E.164, e.g. `+919876543210`) |
+| DELETE | `/groups/:id/contacts/:contactId` | Remove a recipient |
 
 ## Schedules
 

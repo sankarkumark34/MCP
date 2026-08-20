@@ -1,9 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store/store';
 import type {
+  Contact,
   DashboardOverview,
   Execution,
   Group,
+  GroupDetails,
   HistoryResponse,
   LoginResponse,
   ProviderStatus,
@@ -36,6 +38,33 @@ export const api = createApi({
     getGroups: build.query<Group[], void>({
       query: () => '/groups',
       providesTags: ['Groups'],
+    }),
+    getGroupDetails: build.query<GroupDetails, string>({
+      query: (id) => `/groups/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'Groups', id }],
+    }),
+    createGroup: build.mutation<Group, { name: string; description?: string }>({
+      query: (body) => ({ url: '/groups', method: 'POST', body }),
+      invalidatesTags: ['Groups'],
+    }),
+    deleteGroup: build.mutation<{ deleted: true }, string>({
+      query: (id) => ({ url: `/groups/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Groups'],
+    }),
+    addContact: build.mutation<Contact, { listId: string; name: string; phone: string }>({
+      query: ({ listId, ...body }) => ({
+        url: `/groups/${listId}/contacts`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_r, _e, { listId }) => ['Groups', { type: 'Groups', id: listId }],
+    }),
+    removeContact: build.mutation<{ deleted: true }, { listId: string; contactId: string }>({
+      query: ({ listId, contactId }) => ({
+        url: `/groups/${listId}/contacts/${contactId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, { listId }) => ['Groups', { type: 'Groups', id: listId }],
     }),
 
     getSchedules: build.query<Schedule[], void>({
@@ -112,6 +141,11 @@ export const {
   useLoginMutation,
   useGetDashboardQuery,
   useGetGroupsQuery,
+  useGetGroupDetailsQuery,
+  useCreateGroupMutation,
+  useDeleteGroupMutation,
+  useAddContactMutation,
+  useRemoveContactMutation,
   useGetSchedulesQuery,
   useGetScheduleQuery,
   useCreateScheduleMutation,

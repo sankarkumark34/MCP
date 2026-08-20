@@ -33,9 +33,11 @@ only run in the API server.
 
 | Tool | Input | Description |
 |------|-------|-------------|
-| `list_whatsapp_groups` | — | Groups with `supported` capability flag |
-| `get_group_details` | `groupId` | One group |
-| `send_whatsapp_message` | `groupId`, `message` | Immediate send with retry handling; recorded in history |
+| `list_whatsapp_groups` | — | Recipient lists (named sets of individual numbers) |
+| `get_group_details` | `groupId` | One list including member contacts |
+| `add_recipient` | `groupId`, `name`, `phone` | Add an E.164 phone number to a list |
+| `remove_recipient` | `groupId`, `contactId` | Remove a contact from a list |
+| `send_whatsapp_message` | `groupId`, `message` | Immediate parallel send to every contact; retried on transient failure |
 | `list_schedules` | — | All schedules with next run + summary |
 | `create_schedule` | `name`, `targetGroupId`, `message`, `frequency`, `time`, `timezone`, `weekday?`, `enabled` | Create a job (default tz `Asia/Kolkata`) |
 | `pause_schedule` | `scheduleId` | Disable a job |

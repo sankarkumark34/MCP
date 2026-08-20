@@ -45,25 +45,59 @@ async function main() {
     version: '1.0.0',
   });
 
-  server.tool(
+  // zod schema generics can overflow TypeScript's instantiation depth through
+  // the SDK's tool() typing; runtime validation is unaffected by this cast.
+  const tool = server.tool.bind(server) as (
+    name: string,
+    description: string,
+    schema: Record<string, unknown>,
+    handler: (args: any) => Promise<unknown>,
+  ) => void;
+
+  tool(
     'list_whatsapp_groups',
-    'List WhatsApp groups discovered from the connected provider, including whether automated messaging is supported for each.',
+    'List recipient lists (named groups of individual phone numbers). Messages are fanned out to every contact of a list in parallel.',
     {},
     async () => json(await groups.listGroups()),
   );
 
-  server.tool(
+  tool(
     'get_group_details',
-    'Get details for a single WhatsApp group by id.',
-    { groupId: z.string().describe('WhatsApp group id') },
+    'Get details for a recipient list by id, including its member contacts (names and phone numbers).',
+    { groupId: z.string().describe('Recipient list id') },
     async ({ groupId }) => json(await groups.getGroup(groupId)),
   );
 
-  server.tool(
-    'send_whatsapp_message',
-    'Send a one-off WhatsApp message to a group immediately (creates a temporary schedule execution with retry handling and records it in delivery history).',
+  tool(
+    'add_recipient',
+    'Add an individual phone number to a recipient list.',
     {
-      groupId: z.string().describe('Target WhatsApp group id'),
+      groupId: z.string().describe('Recipient list id'),
+      name: z.string().min(1).max(120).describe('Contact name'),
+      phone: z
+        .string()
+        .describe('International E.164 phone number, e.g. +919876543210'),
+    },
+    async ({ groupId, name, phone }) =>
+      json(await groups.addContact(groupId, name, phone)),
+  );
+
+  tool(
+    'remove_recipient',
+    'Remove a contact from a recipient list by contact id.',
+    {
+      groupId: z.string().describe('Recipient list id'),
+      contactId: z.string().describe('Contact id (see get_group_details)'),
+    },
+    async ({ groupId, contactId }) =>
+      json(await groups.removeContact(groupId, contactId)),
+  );
+
+  tool(
+    'send_whatsapp_message',
+    'Send a one-off WhatsApp message to every contact of a recipient list immediately, in parallel (with retry handling; recorded in delivery history).',
+    {
+      groupId: z.string().describe('Target recipient list id'),
       message: z.string().min(1).max(4096).describe('Message text to send'),
     },
     async ({ groupId, message }) => {
@@ -88,14 +122,14 @@ async function main() {
     },
   );
 
-  server.tool(
+  tool(
     'list_schedules',
     'List all notification schedules with group name, next run time and a human-readable summary.',
     {},
     async () => json(await schedules.findAll()),
   );
 
-  server.tool(
+  tool(
     'create_schedule',
     'Create a scheduled WhatsApp notification job.',
     {
@@ -129,21 +163,21 @@ async function main() {
       ),
   );
 
-  server.tool(
+  tool(
     'pause_schedule',
     'Pause (disable) a schedule by id.',
     { scheduleId: z.string() },
     async ({ scheduleId }) => json(await schedules.setEnabled(scheduleId, false)),
   );
 
-  server.tool(
+  tool(
     'resume_schedule',
     'Resume (enable) a schedule by id.',
     { scheduleId: z.string() },
     async ({ scheduleId }) => json(await schedules.setEnabled(scheduleId, true)),
   );
 
-  server.tool(
+  tool(
     'get_delivery_history',
     'Get notification execution history (most recent first), optionally filtered by schedule or status.',
     {

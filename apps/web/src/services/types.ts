@@ -18,6 +18,18 @@ export interface Group {
   supported: boolean;
 }
 
+export interface Contact {
+  id: string;
+  listId: string;
+  name: string;
+  phone: string;
+  createdAt: string;
+}
+
+export interface GroupDetails extends Group {
+  members: Contact[];
+}
+
 export type Frequency = 'daily' | 'weekdays' | 'weekends' | 'weekly';
 
 export interface ScheduleTiming {

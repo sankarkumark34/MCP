@@ -6,9 +6,10 @@ import { WhatsAppGroup } from '../entities/whatsapp-group.entity';
 import { Schedule } from '../entities/schedule.entity';
 import { MessageTemplate } from '../entities/message-template.entity';
 import { NotificationExecution } from '../entities/notification-execution.entity';
+import { Contact } from '../entities/contact.entity';
 import { SeedService } from './seed.service';
 
-const entities = [User, WhatsAppGroup, Schedule, MessageTemplate, NotificationExecution];
+const entities = [User, WhatsAppGroup, Schedule, MessageTemplate, NotificationExecution, Contact];
 
 @Module({
   imports: [
@@ -20,18 +21,18 @@ const entities = [User, WhatsAppGroup, Schedule, MessageTemplate, NotificationEx
         if (type === 'postgres') {
           return {
             type: 'postgres' as const,
-            host: config.get('DB_HOST', 'localhost'),
+            host: config.get<string>('DB_HOST', 'localhost'),
             port: Number(config.get('DB_PORT', 5432)),
-            username: config.get('DB_USERNAME', 'postgres'),
-            password: config.get('DB_PASSWORD', 'postgres'),
-            database: config.get('DB_DATABASE', 'whatsapp_automation'),
+            username: config.get<string>('DB_USERNAME', 'postgres'),
+            password: config.get<string>('DB_PASSWORD', 'postgres'),
+            database: config.get<string>('DB_DATABASE', 'whatsapp_automation'),
             entities,
             synchronize: true,
           };
         }
         return {
           type: 'better-sqlite3' as const,
-          database: config.get('DB_DATABASE', 'data/whatsapp-automation.sqlite'),
+          database: config.get<string>('DB_DATABASE', 'data/whatsapp-automation.sqlite'),
           entities,
           synchronize: true,
         };

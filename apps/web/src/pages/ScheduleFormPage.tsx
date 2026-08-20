@@ -104,7 +104,7 @@ export function ScheduleFormPage() {
   const validate = (): boolean => {
     const next: typeof errors = {};
     if (!form.name.trim()) next.name = 'Automation name is required.';
-    if (!form.targetGroupId) next.targetGroupId = 'Choose a WhatsApp group.';
+    if (!form.targetGroupId) next.targetGroupId = 'Choose a recipient list.';
     if (!form.message.trim()) next.message = 'Message text is required.';
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(form.time)) next.time = 'Enter a valid time (HH:mm).';
     setErrors(next);
@@ -196,7 +196,7 @@ export function ScheduleFormPage() {
         </div>
 
         <div className="field">
-          <label htmlFor="f-group">WhatsApp group <span className="required" aria-hidden="true">*</span></label>
+          <label htmlFor="f-group">Recipient list <span className="required" aria-hidden="true">*</span></label>
           <select
             id="f-group"
             value={form.targetGroupId}
@@ -205,12 +205,14 @@ export function ScheduleFormPage() {
             aria-describedby={errors.targetGroupId ? 'f-group-error' : 'f-group-hint'}
             required
           >
-            <option value="">Select a group…</option>
+            <option value="">Select a recipient list…</option>
             {supportedGroups.map((g) => (
-              <option key={g.id} value={g.id}>{g.name} ({g.memberCount} members)</option>
+              <option key={g.id} value={g.id}>{g.name} ({g.memberCount} recipients)</option>
             ))}
           </select>
-          <span id="f-group-hint" className="hint">Only groups supported by the connected provider are listed.</span>
+          <span id="f-group-hint" className="hint">
+            Everyone in the list receives an individual message at the same time. Manage lists on the Recipients page.
+          </span>
           {errors.targetGroupId && (
             <span id="f-group-error" className="error-text" role="alert">{errors.targetGroupId}</span>
           )}
