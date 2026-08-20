@@ -43,7 +43,6 @@ export class CreateScheduleDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(4096)
   message: string;
 
   @ValidateNested()
@@ -70,7 +69,6 @@ export class UpdateScheduleDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(4096)
   message?: string;
 
   @IsOptional()

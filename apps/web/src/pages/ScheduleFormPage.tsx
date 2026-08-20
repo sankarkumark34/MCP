@@ -241,7 +241,6 @@ export function ScheduleFormPage() {
           <textarea
             id="f-message"
             value={form.message}
-            maxLength={4096}
             placeholder="Good Morning! Have a productive day! 🌞"
             onChange={(e) => set('message', e.target.value)}
             aria-invalid={errors.message ? true : undefined}

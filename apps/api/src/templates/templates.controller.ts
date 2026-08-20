@@ -18,7 +18,6 @@ class CreateTemplateDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(4096)
   body: string;
 }
 
@@ -32,7 +31,6 @@ class UpdateTemplateDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(4096)
   body?: string;
 }
 

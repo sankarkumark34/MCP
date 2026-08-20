@@ -123,7 +123,6 @@ export function MessagesPage() {
             <textarea
               id="t-body"
               value={body}
-              maxLength={4096}
               onChange={(e) => { setBody(e.target.value); setBodyError(null); }}
               aria-invalid={bodyError ? true : undefined}
               aria-describedby={bodyError ? 't-body-error' : 't-body-hint'}

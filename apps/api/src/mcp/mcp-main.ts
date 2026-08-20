@@ -101,7 +101,7 @@ async function main() {
     'Send a one-off WhatsApp message to every contact of a recipient list immediately, in parallel (with retry handling; recorded in delivery history).',
     {
       groupId: z.string().describe('Target recipient list id'),
-      message: z.string().min(1).max(4096).describe('Message text to send'),
+      message: z.string().min(1).describe('Message text to send'),
     },
     async ({ groupId, message }) => {
       const schedule = await schedules.create({
@@ -138,7 +138,7 @@ async function main() {
     {
       name: z.string().min(1).max(120),
       targetGroupId: z.string().describe('WhatsApp group id (see list_whatsapp_groups)'),
-      message: z.string().min(1).max(4096),
+      message: z.string().min(1),
       frequency: z.enum(['daily', 'weekdays', 'weekends', 'weekly']).default('daily'),
       time: z
         .string()
