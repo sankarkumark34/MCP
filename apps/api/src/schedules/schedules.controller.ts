@@ -45,7 +45,7 @@ export class SchedulesController {
   }
 
   // Rate-limited manual test send
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Post(':id/test')
   sendTest(@Param('id') id: string) {
     return this.notifications.sendTest(id);
