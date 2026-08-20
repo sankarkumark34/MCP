@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import { execSync } from 'child_process';
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
 import { WhatsAppGroup } from '../entities/whatsapp-group.entity';
@@ -25,6 +26,11 @@ import {
  * fans out individual messages to every contact of a recipient list in
  * parallel.
  *
+ * Self-healing: before every batch the client is health-checked; if the
+ * underlying browser page has crashed (the "Cannot read properties of null
+ * (reading 'evaluate')" failure mode), the client is destroyed and
+ * re-initialized automatically using the saved session (no QR re-scan).
+ *
  * NOTE: whatsapp-web.js is an unofficial library and is against WhatsApp's
  * Terms of Service — there is a real (if small) risk of the linked number
  * being banned, especially for spammy volume. Keep lists small, messages
@@ -37,13 +43,13 @@ export class WWebJsProvider
   readonly name = 'whatsapp-web';
   private readonly logger = new Logger(WWebJsProvider.name);
   private readonly enabled: boolean;
+  private readonly chromePath: string | undefined;
   private client: Client | null = null;
   private ready = false;
+  private initializing = false;
   private lastQr: string | null = null;
   private lastError: string | null = null;
   private selfNumber: string | null = null;
-
-  private readonly chromePath: string | undefined;
 
   constructor(
     config: ConfigService,
@@ -58,7 +64,19 @@ export class WWebJsProvider
 
   onModuleInit(): void {
     if (!this.enabled) return;
+    this.killOrphanChrome();
+    this.startClient();
+  }
+
+  async onApplicationShutdown(): Promise<void> {
+    if (this.client) {
+      await this.client.destroy().catch(() => undefined);
+    }
+  }
+
+  private startClient(): void {
     this.logger.log('Starting whatsapp-web.js client (headless browser)…');
+    this.ready = false;
     this.client = new Client({
       authStrategy: new LocalAuth({ dataPath: 'data/wweb-session' }),
       puppeteer: {
@@ -111,9 +129,83 @@ export class WWebJsProvider
     });
   }
 
-  async onApplicationShutdown(): Promise<void> {
-    if (this.client) {
-      await this.client.destroy().catch(() => undefined);
+  /** Kill leftover Chrome processes still holding the session profile. */
+  private killOrphanChrome(): void {
+    if (process.platform !== 'win32') return;
+    try {
+      execSync(
+        `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='chrome.exe'\\" | Where-Object { $_.CommandLine -like '*wweb-session*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"`,
+        { stdio: 'ignore', timeout: 15_000 },
+      );
+    } catch {
+      // best effort — a failed cleanup should not block startup
+    }
+  }
+
+  /** True when the client's browser page responds to a trivial call. */
+  private async isPageAlive(): Promise<boolean> {
+    if (!this.client || !this.ready) return false;
+    try {
+      const state = await Promise.race([
+        this.client.getState(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('state check timed out')), 8000),
+        ),
+      ]);
+      return state === 'CONNECTED';
+    } catch {
+      return false;
+    }
+  }
+
+  private waitReady(timeoutMs: number): Promise<void> {
+    const started = Date.now();
+    return new Promise((resolve, reject) => {
+      const poll = () => {
+        if (this.ready) return resolve();
+        if (this.lastQr) {
+          return reject(
+            new ProviderError(
+              'WhatsApp session expired — scan the QR code on the Settings page',
+              'NOT_CONNECTED',
+              false,
+            ),
+          );
+        }
+        if (Date.now() - started > timeoutMs) {
+          return reject(
+            new ProviderError(
+              this.lastError ?? 'WhatsApp client did not become ready in time',
+              'NOT_CONNECTED',
+              true,
+            ),
+          );
+        }
+        setTimeout(poll, 500);
+      };
+      poll();
+    });
+  }
+
+  /** Health-check the client; destroy and re-initialize it if the page died. */
+  private async ensureHealthy(): Promise<void> {
+    if (await this.isPageAlive()) return;
+    if (this.initializing) {
+      await this.waitReady(90_000);
+      return;
+    }
+    this.initializing = true;
+    try {
+      this.logger.warn(
+        'WhatsApp client page is unresponsive — reinitializing with the saved session…',
+      );
+      await this.client?.destroy().catch(() => undefined);
+      this.killOrphanChrome();
+      this.startClient();
+      await this.waitReady(90_000);
+      this.logger.log('WhatsApp client recovered');
+    } finally {
+      this.initializing = false;
     }
   }
 
@@ -133,15 +225,15 @@ export class WWebJsProvider
   }
 
   async sendGroupMessage(listId: string, message: string): Promise<SendResult> {
-    if (!this.client || !this.ready) {
+    if (!this.client) {
       throw new ProviderError(
-        this.lastQr
-          ? 'WhatsApp is not linked yet — scan the QR code on the Settings page'
-          : this.lastError ?? 'WhatsApp client is still starting, try again shortly',
+        this.lastError ?? 'WhatsApp client is not running',
         'NOT_CONNECTED',
         true,
       );
     }
+    await this.ensureHealthy();
+
     const list = await this.groups.findOne({ where: { id: listId } });
     if (!list) {
       throw new ProviderError(`Recipient list ${listId} not found`, 'LIST_NOT_FOUND', false);
