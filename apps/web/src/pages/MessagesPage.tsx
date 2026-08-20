@@ -10,6 +10,7 @@ import {
 import type { Template } from '../services/types';
 import { EmptyState, ErrorState, PageSkeleton } from '../components/common/States';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { IconMessage } from '../components/common/Icons';
 import { useAppDispatch } from '../store/hooks';
 import { pushToast } from '../store/uiSlice';
 import { apiErrorMessage } from '../lib/format';
@@ -180,7 +181,7 @@ export function MessagesPage() {
           ) : isError ? (
             <ErrorState detail="Templates could not be loaded." onRetry={refetch} />
           ) : !data || data.length === 0 ? (
-            <EmptyState icon="💬" title="No templates yet">
+            <EmptyState icon={<IconMessage size={32} />} title="No templates yet">
               <p>Create a reusable message on the left.</p>
             </EmptyState>
           ) : (

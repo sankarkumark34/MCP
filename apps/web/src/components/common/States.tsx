@@ -1,17 +1,18 @@
 import { ReactNode } from 'react';
+import { IconAlert, IconInbox } from './Icons';
 
 export function EmptyState({
-  icon = '📭',
+  icon,
   title,
   children,
 }: {
-  icon?: string;
+  icon?: ReactNode;
   title: string;
   children?: ReactNode;
 }) {
   return (
     <div className="empty-state" role="status">
-      <span className="icon" aria-hidden="true">{icon}</span>
+      <span className="icon" aria-hidden="true">{icon ?? <IconInbox size={36} />}</span>
       <h3>{title}</h3>
       {children}
     </div>
@@ -29,7 +30,9 @@ export function ErrorState({
 }) {
   return (
     <div className="error-state" role="alert">
-      <h3>{title}</h3>
+      <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <IconAlert size={18} /> {title}
+      </h3>
       {detail && <p className="muted">{detail}</p>}
       {onRetry && (
         <button type="button" className="btn btn-secondary" onClick={onRetry}>

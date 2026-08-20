@@ -3,6 +3,7 @@ import { useGetDashboardQuery } from '../services/api';
 import { useAppSelector } from '../store/hooks';
 import { DeliveryChart } from '../components/dashboard/DeliveryChart';
 import { EmptyState, ErrorState, PageSkeleton } from '../components/common/States';
+import { IconCalendar, IconClock, IconPlus } from '../components/common/Icons';
 import { StatusBadge, EnabledBadge } from '../components/common/StatusBadge';
 import { formatDateTime, formatRelative } from '../lib/format';
 
@@ -35,7 +36,7 @@ export function DashboardPage() {
           <h1>{greeting}, {user?.name ?? 'there'}</h1>
           <p className="subtitle">Automation overview</p>
         </div>
-        <Link to="/schedules/new" className="btn btn-primary">+ New automation</Link>
+        <Link to="/schedules/new" className="btn btn-primary"><IconPlus size={16} /> New automation</Link>
       </div>
 
       <div className="kpi-grid">
@@ -75,7 +76,7 @@ export function DashboardPage() {
         <div className="card">
           <h2>Active automations</h2>
           {data.activeAutomations.length === 0 ? (
-            <EmptyState icon="🗓️" title="No active automations">
+            <EmptyState icon={<IconCalendar size={32} />} title="No active automations">
               <Link to="/schedules/new" className="btn btn-primary">Create your first automation</Link>
             </EmptyState>
           ) : (
@@ -97,7 +98,7 @@ export function DashboardPage() {
       <div className="card">
         <h2>Recent activity</h2>
         {data.recentActivity.length === 0 ? (
-          <EmptyState icon="🕘" title="No executions yet">
+          <EmptyState icon={<IconClock size={32} />} title="No executions yet">
             <p>Once your automations run (or you send a test), activity appears here.</p>
           </EmptyState>
         ) : (

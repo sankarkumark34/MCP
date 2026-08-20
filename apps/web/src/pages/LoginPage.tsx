@@ -4,6 +4,7 @@ import { useLoginMutation } from '../services/api';
 import { useAppDispatch } from '../store/hooks';
 import { setCredentials } from '../store/authSlice';
 import { apiErrorMessage } from '../lib/format';
+import { IconChat } from '../components/common/Icons';
 
 export function LoginPage() {
   const [email, setEmail] = useState('admin@example.com');
@@ -30,7 +31,7 @@ export function LoginPage() {
       <div className="login-card">
         <div style={{ textAlign: 'center' }}>
           <div className="sidebar-brand" style={{ justifyContent: 'center' }}>
-            <span className="logo" aria-hidden="true">WA</span>
+            <span className="logo"><IconChat size={18} /></span>
             <span>WhatsApp Automation</span>
           </div>
           <p className="muted">Sign in to your automation console</p>

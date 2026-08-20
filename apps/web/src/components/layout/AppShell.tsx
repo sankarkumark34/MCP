@@ -1,15 +1,32 @@
+import { ComponentType, SVGProps } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/authSlice';
 import { ToastRegion } from '../common/Toasts';
+import {
+  IconCalendar,
+  IconChat,
+  IconClock,
+  IconDashboard,
+  IconLogout,
+  IconMessage,
+  IconSettings,
+  IconUsers,
+} from '../common/Icons';
 
-const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/schedules', label: 'Schedules', icon: '🗓️' },
-  { to: '/groups', label: 'Groups', icon: '👥' },
-  { to: '/messages', label: 'Messages', icon: '💬' },
-  { to: '/history', label: 'History', icon: '🕘' },
-  { to: '/settings', label: 'Settings', icon: '⚙️' },
+interface NavItem {
+  to: string;
+  label: string;
+  icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
+  { to: '/schedules', label: 'Schedules', icon: IconCalendar },
+  { to: '/groups', label: 'Groups', icon: IconUsers },
+  { to: '/messages', label: 'Messages', icon: IconMessage },
+  { to: '/history', label: 'History', icon: IconClock },
+  { to: '/settings', label: 'Settings', icon: IconSettings },
 ];
 
 export function AppShell() {
@@ -21,18 +38,20 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span className="logo" aria-hidden="true">WA</span>
-          <span>WhatsApp Automation</span>
+          <span className="logo">
+            <IconChat size={18} />
+          </span>
+          <span className="brand-text">WhatsApp Automation</span>
         </div>
         <nav aria-label="Main navigation">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavLink
-              key={item.to}
-              to={item.to}
+              key={to}
+              to={to}
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
             >
-              <span aria-hidden="true">{item.icon}</span>
-              {item.label}
+              <Icon size={18} />
+              <span className="nav-label">{label}</span>
             </NavLink>
           ))}
         </nav>
@@ -44,7 +63,7 @@ export function AppShell() {
             <span className="avatar" aria-hidden="true">
               {(user?.name ?? 'U').slice(0, 1).toUpperCase()}
             </span>
-            <span>{user?.name ?? 'User'}</span>
+            <span className="user-name">{user?.name ?? 'User'}</span>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
@@ -53,7 +72,8 @@ export function AppShell() {
                 navigate('/login');
               }}
             >
-              Sign out
+              <IconLogout size={14} />
+              <span className="signout-label">Sign out</span>
             </button>
           </div>
         </header>

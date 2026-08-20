@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGetHistoryQuery, useGetSchedulesQuery } from '../services/api';
 import { EmptyState, ErrorState, PageSkeleton } from '../components/common/States';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { IconClock } from '../components/common/Icons';
 import { formatDateTime } from '../lib/format';
 
 const STATUSES = ['', 'SENT', 'RETRIED', 'FAILED', 'SKIPPED', 'PENDING'] as const;
@@ -65,7 +66,7 @@ export function HistoryPage() {
         ) : isError ? (
           <ErrorState detail="History could not be loaded." onRetry={refetch} />
         ) : !data || data.items.length === 0 ? (
-          <EmptyState icon="🕘" title="No executions match">
+          <EmptyState icon={<IconClock size={32} />} title="No executions match">
             <p>Executions appear here after schedules run or test messages are sent.</p>
           </EmptyState>
         ) : (

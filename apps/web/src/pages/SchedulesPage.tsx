@@ -8,6 +8,7 @@ import {
   useSendTestMutation,
 } from '../services/api';
 import { EmptyState, ErrorState, PageSkeleton } from '../components/common/States';
+import { IconCalendar, IconPlus, IconSearch } from '../components/common/Icons';
 import { EnabledBadge } from '../components/common/StatusBadge';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { useAppDispatch } from '../store/hooks';
@@ -21,7 +22,13 @@ export function SchedulesPage() {
   const [sendTest, { isLoading: testing }] = useSendTestMutation();
   const [remove, { isLoading: deleting }] = useDeleteScheduleMutation();
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [search, setSearch] = useState('');
   const dispatch = useAppDispatch();
+
+  const filtered = (data ?? []).filter((s) =>
+    s.name.toLowerCase().includes(search.trim().toLowerCase()) ||
+    (s.groupName ?? '').toLowerCase().includes(search.trim().toLowerCase()),
+  );
 
   const onToggle = async (id: string, enabled: boolean) => {
     try {
@@ -71,8 +78,23 @@ export function SchedulesPage() {
           <h1>Schedules</h1>
           <p className="subtitle">Create, pause and manage notification automations</p>
         </div>
-        <Link to="/schedules/new" className="btn btn-primary">+ New automation</Link>
+        <Link to="/schedules/new" className="btn btn-primary"><IconPlus size={16} /> New automation</Link>
       </div>
+
+      {(data?.length ?? 0) > 0 && (
+        <div className="toolbar">
+          <div className="search-box">
+            <IconSearch size={16} />
+            <input
+              type="search"
+              aria-label="Search automations"
+              placeholder="Search automations…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <PageSkeleton />
@@ -80,7 +102,7 @@ export function SchedulesPage() {
         <ErrorState detail="Schedules could not be loaded." onRetry={refetch} />
       ) : !data || data.length === 0 ? (
         <div className="card">
-          <EmptyState icon="🗓️" title="No automations yet">
+          <EmptyState icon={<IconCalendar size={32} />} title="No automations yet">
             <p>Create your first scheduled WhatsApp message.</p>
             <Link to="/schedules/new" className="btn btn-primary">Create automation</Link>
           </EmptyState>
@@ -99,7 +121,7 @@ export function SchedulesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((s) => (
+              {filtered.map((s) => (
                 <tr key={s.id}>
                   <td><Link to={`/schedules/${s.id}`} style={{ fontWeight: 600 }}>{s.name}</Link></td>
                   <td>{s.groupName ?? s.targetGroupId}</td>
