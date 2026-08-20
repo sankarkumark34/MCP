@@ -68,6 +68,15 @@ export class WWebJsProvider
         executablePath: this.chromePath,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
       },
+      // Pin a WhatsApp Web build from the library's release era — current
+      // WhatsApp Web builds break whatsapp-web.js's page injection
+      // ("Cannot read properties of null (reading 'evaluate')").
+      webVersion: '2.3000.1038439810-alpha',
+      webVersionCache: {
+        type: 'remote',
+        remotePath:
+          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1038439810-alpha.html',
+      },
     });
 
     this.client.on('qr', (qr) => {
@@ -191,11 +200,28 @@ export class WWebJsProvider
 
   private async sendToNumber(phone: string, message: string): Promise<void> {
     const digits = phone.replace(/\D/g, '');
-    const numberId = await this.client!.getNumberId(digits);
-    if (!numberId) {
+    const chatId = `${digits}@c.us`;
+    // getNumberId is flaky on some WhatsApp Web versions ("null.evaluate")
+    // — validate when it works, otherwise fall back to a direct chat send.
+    try {
+      const numberId = await this.client!.getNumberId(digits);
+      if (numberId) {
+        await this.client!.sendMessage(numberId._serialized, message);
+        return;
+      }
       throw new Error(`${phone} is not registered on WhatsApp`);
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        err.message.includes('is not registered on WhatsApp')
+      ) {
+        throw err;
+      }
+      this.logger.debug(
+        `getNumberId failed for ${phone} (${(err as Error).message}) — trying direct send`,
+      );
+      await this.client!.sendMessage(chatId, message);
     }
-    await this.client!.sendMessage(numberId._serialized, message);
   }
 
   /** Data-URL PNG of the pairing QR, or null when linked / not yet generated. */
