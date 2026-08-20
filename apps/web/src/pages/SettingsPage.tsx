@@ -1,9 +1,18 @@
-import { useGetAiStatusQuery, useGetProviderStatusQuery } from '../services/api';
+import {
+  useGetAiStatusQuery,
+  useGetProviderQrQuery,
+  useGetProviderStatusQuery,
+} from '../services/api';
 import { ErrorState, PageSkeleton } from '../components/common/States';
 import { useAppSelector } from '../store/hooks';
 
 export function SettingsPage() {
-  const provider = useGetProviderStatusQuery();
+  const provider = useGetProviderStatusQuery(undefined, { pollingInterval: 5000 });
+  const needsLink = provider.data ? !provider.data.connected : false;
+  const qr = useGetProviderQrQuery(undefined, {
+    pollingInterval: 5000,
+    skip: !needsLink,
+  });
   const ai = useGetAiStatusQuery();
   const user = useAppSelector((s) => s.auth.user);
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -35,6 +44,22 @@ export function SettingsPage() {
               </span>
             </div>
             <p className="muted" style={{ margin: 0 }}>{provider.data.detail}</p>
+            {needsLink && qr.data?.qr && (
+              <div className="qr-panel">
+                <img src={qr.data.qr} alt="WhatsApp pairing QR code" width={280} height={280} />
+                <div>
+                  <strong>Link your WhatsApp</strong>
+                  <ol style={{ margin: '8px 0 0', paddingLeft: 18 }}>
+                    <li>Open WhatsApp on your phone</li>
+                    <li>Tap ⋮ (menu) → <strong>Linked devices</strong></li>
+                    <li>Tap <strong>Link a device</strong> and scan this QR</li>
+                  </ol>
+                  <p className="muted" style={{ marginTop: 8, fontSize: 'var(--text-xs)' }}>
+                    This page refreshes automatically — once linked, real messages start flowing.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

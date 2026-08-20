@@ -46,6 +46,8 @@ export interface WhatsAppProvider {
     groupMessagingSupported: boolean;
     detail: string;
   }>;
+  /** Optional: data-URL PNG of a pairing QR when the provider needs linking. */
+  getQr?(): Promise<string | null>;
 }
 
 export const WHATSAPP_PROVIDER = Symbol('WHATSAPP_PROVIDER');

@@ -128,6 +128,9 @@ export const api = createApi({
     getProviderStatus: build.query<ProviderStatus, void>({
       query: () => '/provider/status',
     }),
+    getProviderQr: build.query<{ qr: string | null }, void>({
+      query: () => '/provider/qr',
+    }),
     getAiStatus: build.query<{ enabled: boolean }, void>({
       query: () => '/ai/status',
     }),
@@ -160,6 +163,7 @@ export const {
   useDeleteTemplateMutation,
   useGetHistoryQuery,
   useGetProviderStatusQuery,
+  useGetProviderQrQuery,
   useGetAiStatusQuery,
   useComposeAiMutation,
 } = api;

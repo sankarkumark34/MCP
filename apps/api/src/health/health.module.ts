@@ -29,6 +29,12 @@ class ProviderController {
   status() {
     return this.provider.getStatus();
   }
+
+  @Get('qr')
+  async qr() {
+    const qr = this.provider.getQr ? await this.provider.getQr() : null;
+    return { qr };
+  }
 }
 
 @Module({

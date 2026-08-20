@@ -8,8 +8,11 @@
  *
  * Run: npm run mcp   (dev, ts-node)  |  npm run mcp:prod  (built)
  */
-// The scheduler must not tick inside an MCP client process.
+// The scheduler must not tick inside an MCP client process, and the
+// whatsapp-web linked-device session cannot be shared with the API process —
+// MCP sends use the mock provider unless explicitly overridden.
 process.env.SCHEDULER_ENABLED = 'false';
+process.env.WHATSAPP_PROVIDER = process.env.MCP_WHATSAPP_PROVIDER ?? 'mock';
 
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';

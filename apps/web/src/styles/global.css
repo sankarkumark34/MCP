@@ -214,6 +214,26 @@ a {
   width: 100%;
 }
 
+/* ---------- Provider QR panel ---------- */
+.qr-panel {
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+}
+
+.qr-panel img {
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: var(--space-2);
+  max-width: 100%;
+  height: auto;
+}
+
 /* ---------- Recipient lists ---------- */
 .list-grid {
   display: grid;
